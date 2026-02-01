@@ -1,0 +1,61 @@
+Cохраняем wr 
+router config:
+Имя ip адресс на интерфейсах их описания и включение 
+на одном делаем порты untagged и присоединяем их connect ip interface <name>
+c vlan тоже описание
+VLAN
+-encapsulation dot1q 100 - метка влана
+-rewrite pop 1 - снятие метки
+connect ip interface
+BGP
+-router bgp x.x.x.x - по заданию
+-bgp router-id x.x.x.x
+-neighbor x.x.x.x remote-as x.x.x.x - указываем соседство в бланке задания
+Настройка тунеля GRE
+-interface tunnel
+-ip address
+-ip tunnel x.x.x.x x.x.x.x. mode gre
+NAT
+inside и outside на интерфейсах
+-ip nat pool <name> x.x.x.x.x-x.x.x.x
+-ip nat pool vlanX x.x.x.x.-x.x.x.x.
+Правила NAT
+ip nat source dynamic inside pool <name> overload interface <интерфейс внешний>
+ip nat source dynamic inside pool vlanX overload interface <интерфейс внешний>
+Cтатические маршруты
+ip route x.x.x.x
+На роутере с vlan
+-Внешний это outside внутренние inside
+ip nat pool vlanx x.x.x.x.-x.x.x.x
+ip nat source dynamic inside-to-outside pool vlanX overload interface <Внешний>
+OSPF
+router ospf 1
+  
+•	Сконфигурируйте OSPF идентификатор маршрутизатора (необязательный этап)
+o	Используйте команду ospf router-id <значение>, в качестве значения укажем туннельный IP-адрес маршрутизатора:
+  router-id 10.10.10.1
+  
+•	Переводим все интерфейсы в пассивный режим:
+  passive-interface default 
+  
+•	Исключаем интерфейс tunnel.0 из пассивного режима для установления соседства и дальнейшего обмена маршрутной информацией:
+  no passive-interface tunnel.0 
+  
+•	Объявляем сети, которые будут задействованы в процессе маршрутизации:
+o	импортировав (redistribute) ранее указанные статические маршруты (до локальных сетей COD-а) в процесс OSPF
+  redistribute static 
+  network 10.10.10.0/30 area 0
+  network 172.16.1.0/30 area 0
+  exit
+•	Обеспечиваем защиту протокола маршрутизации посредством парольной защиты:
+interface tunnel.0
+ip ospf authentication message-digest 
+ip ospf message-digest-key 1 md5 P@ssw0rd
+STP на коммутаторе
+•	Запускаем процесс STP на коммутаторе:
+o	в режиме 802.1w (rstp)
+ovs-vsctl set bridge sw1-a rstp_enable=true
+ovs-vsctl set bridge sw1-a other_config:stp-protocol=rstp
+•	Задаём данному коммутатору наименьший приоритет:
+ovs-vsctl set bridge sw1-a other_config:rstp-priority=0
+
