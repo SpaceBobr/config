@@ -54,8 +54,36 @@ ip ospf message-digest-key 1 md5 P@ssw0rd
 STP на коммутаторе
 •	Запускаем процесс STP на коммутаторе:
 o	в режиме 802.1w (rstp)
-ovs-vsctl set bridge sw1-a rstp_enable=true
-ovs-vsctl set bridge sw1-a other_config:stp-protocol=rstp
+включение тегирование трафика
+modprobe 8021q
+echo "8021q" | tee -a /etc/modules
+ovs-vsctl set port mgmt-cod vlan_mode=native-untagged
+
+RSTP
+ovs-vsctl set bridge x  rstp_enable=true
+ovs-vsctl set bridge x other_config:stp-protocol=rstp
 •	Задаём данному коммутатору наименьший приоритет:
 ovs-vsctl set bridge sw1-a other_config:rstp-priority=0
-
+BOND на свитчах
+ovs-vsctl add-bond x bond0 x x bond_mode=active-backup
+ovs-vsctl set port bond0 trunk=100,200,300,400,500
+RADIUS
+rtr(config)#security none 
+rtr(config)#aaa radius-server 192.168.10.1 port 1812 secret P@ssw0rd auth
+rtr(config)#
+Задаём приоритет:
+rtr(config)#aaa precedence local radius
+rtr(config)#write memory
+Building configuration...
+NTP
+rtr- и rtr- 
+Устанавливаем корректный часовой пояс:
+rtr#ntp timezone utc+3
+rtr
+Устанавливаем синхронизацию времени с 100.100.100.100:
+rtr#ntp server x.x.x.x.
+rtr#write memory
+Building configuration...
+На машинах 
+timedatectl  set-timezone Europe/Moscow
+systemctl restart chronyd
